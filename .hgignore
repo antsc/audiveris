@@ -1,0 +1,14 @@
+\.hgignore$
+\.chg\..*$
+\.conflict\~$
+\.orig$
+\.orig\..*$
+\.rej$
+build
+dist
+manifest.mf
+nbproject
+project
+scores
+scripts
+tesseract.log
