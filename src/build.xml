@@ -1,0 +1,460 @@
+<!-- +=====================================================================+ -->
+<!-- |                                                                     | -->
+<!-- |                         b u i l d . x m l                           | -->
+<!-- |                                                                     | -->
+<!-- | abstract: Emacs/ant build for Audiveris application                 | -->
+<!-- | location: ${basedir}/src/build.xml                                  | -->
+<!-- | author:   herve.bitteur@laposte.net                                 | -->
+<!-- |                                                                     | -->
+<!-- +=====================================================================+ -->
+
+<project name="audiveris" basedir=".." default="run">
+
+    <description>
+        Build, test, and run the Audiveris project via Emacs or Ant
+        $Id$
+
+	This 'build.xml' file is located in the 'src' subdirectory to be
+	automatically picked up by Emacs or Ant
+
+	Use 'ant -projecthelp' to list public defined targets.
+	Targets whose name begins with '-' are only internal targets.
+    </description>
+
+    <!-- Give users first chance to override properties -->
+    <property file="${user.home}/.audiveris/build.properties"/>
+
+    <property name="dev.dir"          location="${basedir}/src"/>
+    <property name="config.dir"       location="${basedir}/config"/>
+    <property name="nb.javadoc.dir"   location="${basedir}/dist/javadoc"/>
+
+    <!-- Give users second chance to override properties -->
+    <property file="${dev.dir}/build.properties"/>
+
+    <!-- Finally, get all default property values -->
+    <property file="${dev.dir}/build.default.properties"/>
+    
+    <!-- ================================================================ -->
+
+    <!-- Load the environment variables -->
+    <property environment="env"/>
+    
+    <!-- Tools classpath -->
+    <path id="tools.classpath">
+        <pathelement path="${barebones.jar}"/>
+
+        <pathelement path="${eventbus.jar}"/>
+
+        <pathelement path="${jama.jar}"/>
+
+        <pathelement path="${jai.dir}/jai_imageio.jar"/>
+        <pathelement path="${jai.dir}/clibwrapper_jiio.jar"/>
+
+	<pathelement path="${jai.dir}/jai_codec.jar"/>
+        <pathelement path="${jai.dir}/jai_core.jar"/>
+        <pathelement path="${jai.dir}/mlibwrapper_jai.jar"/>
+	
+        <pathelement path="${jcip.jar}"/>
+
+	<pathelement path="${jcommon.jar}"/>
+        <pathelement path="${jfreechart.jar}"/>
+
+	<pathelement path="${jgoodies.forms.jar}"/>
+        <pathelement path="${jgoodies.looks.jar}"/>
+
+	<pathelement path="${pdfrenderer.jar}"/>
+
+	<pathelement path="${proxymusic.jar}"/>
+
+	<pathelement path="${swingappfwk.jar}"/>
+
+	<pathelement path="${swingworker.jar}"/>
+
+	<pathelement path="${tesjeract.jar}"/>
+
+	<pathelement path="${xenoplay.jar}"/>
+    </path>
+    
+    <!-- Build classpath -->
+    <path id="build.classpath">
+        <pathelement path="${build.classes.dir}"/>
+        <path refid="tools.classpath"/>
+    </path>
+    <property name="javac.classpath" refid="build.classpath"/>
+    
+    <!-- Build Test classpath -->
+    <path id="build.test.classpath">
+	<pathelement location="${junit.jar}"  /> 
+        <pathelement path="${build.test.classes.dir}"/>
+        <path refid="build.classpath"/>
+    </path>
+    
+    <!-- Jar classpath -->
+    <path id="jar.classpath">
+        <path refid="tools.classpath"/>
+        <pathelement path="${icons.buttons.jar}"/>
+    </path>
+    
+    <!-- Run classpath -->
+    <path id="run.classpath">
+        <pathelement path="${dist.jar}"/>
+        <path refid="jar.classpath"/>
+    </path>
+    
+    <!-- Run Test classpath -->
+    <path id="run.test.classpath">
+        <path refid="build.test.classpath"/>
+        <pathelement path="${dist.jar}"/>
+    </path>
+    
+    <!-- ================================================================ -->
+    <!-- ======================  Internal Targets  ====================== -->
+    <!-- ================================================================ -->
+
+    <!-- Load internal targets common to Emacs and NetBeans -->
+    <import file="${dev.dir}/build-common.xml"/>
+    
+    <!-- ========================= -->
+    <!--  - C L E A N - B U I L D  -->
+    <!-- ========================= -->
+    <target name="-clean-build">
+	<!-- description="Remove all build generated outputs." -->
+        <delete verbose="${verbose}" dir="${build.dir}"/>
+    </target>
+
+    <!-- ======================= -->
+    <!--  - C L E A N - D I S T  -->
+    <!-- ======================= -->
+    <target name="-clean-dist">
+<!--         description="Remove all dist generated outputs." -->
+        <delete verbose="${verbose}" dir="${dist.dir}"/>
+    </target>
+    
+    <!-- ===================== -->
+    <!--  - C L E A N - J A R  -->
+    <!-- ===================== -->
+    <target name="-clean-jar">
+<!--         description="Remove all generated libraries." -->
+	<delete verbose="${verbose}" dir="${dist.dir}"/>
+    </target>
+    
+    <!-- ================= -->
+    <!--  - C O M P I L E  -->
+    <!-- ================= -->
+    <target name="-compile"
+        depends="-do-compile, -post-compile"/>
+
+    <!-- ===================== -->
+    <!--  - C O P Y - L I B S  -->
+    <!-- ===================== -->
+    <target name="-copy-libs">
+        <mkdir dir="${dist.dir}/lib"/>
+
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${barebones.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${eventbus.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${icons.buttons.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${jama.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${jcommon.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${jfreechart.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${jgoodies.forms.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${jgoodies.looks.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${pdfrenderer.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${proxymusic.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${swingappfwk.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${swingworker.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${tesjeract.jar}"/>
+	<copy todir="${dist.dir}/lib" verbose="$verbose" file="${xenoplay.jar}"/>
+        <copy todir="${dist.dir}/lib" verbose="$verbose" file="${jai.dir}/jai_imageio.jar"/>
+        <copy todir="${dist.dir}/lib" verbose="$verbose" file="${jai.dir}/clibwrapper_jiio.jar"/>
+        <copy todir="${dist.dir}/lib" verbose="$verbose" file="${jai.dir}/jai_codec.jar"/>
+        <copy todir="${dist.dir}/lib" verbose="$verbose" file="${jai.dir}/jai_core.jar"/>
+        <copy todir="${dist.dir}/lib" verbose="$verbose" file="${jai.dir}/mlibwrapper_jai.jar"/>
+
+    </target>
+
+    <!-- =============================== -->
+    <!--  - C O P Y - R E S O U R C E S  -->
+    <!-- =============================== -->
+    <target name="-copy-resources">
+        <mkdir dir="${build.classes.dir}"/>
+
+	<copy todir="${build.classes.dir}" verbose="$verbose">
+	    <fileset dir="${src.dir}" includes="**/*.properties"/>
+	    <fileset dir="${plugins.dir}" includes="**/*.properties"/>
+	</copy>
+
+    </target>
+	     
+    
+    <!-- ======================= -->
+    <!--  - D O - C O M P I L E  -->
+    <!-- ======================= -->
+    <target name="-do-compile"
+        depends="-init">
+<!--         description="Compile the java code." -->
+
+        <mkdir dir="${build.classes.dir}"/>
+        
+        <!-- baseline classes -->
+        <javac
+	    target       = "${javac.target}"
+            classpathref = "build.classpath"
+            debug        = "${build.compile.debug}"
+            deprecation  = "${build.compile.deprecation}"
+            destdir      = "${build.classes.dir}"
+            listfiles    = "${build.compile.listfiles}"
+            source       = "${build.compile.source}"
+            srcdir       = "${src.dir}"
+            >
+<!--             <compilerarg value="-Xlint"/> -->
+<!--             <compilerarg value="-Xlint:-serial"/> -->
+<!--             <compilerarg value="-Xlint:-path"/> -->
+        </javac>
+        
+        <!-- plugin classes -->
+        <javac
+	    target       = "${javac.target}"
+            classpathref = "build.classpath"
+            debug        = "${build.compile.debug}"
+            deprecation  = "${build.compile.deprecation}"
+            destdir      = "${build.classes.dir}"
+            listfiles    = "${build.compile.listfiles}"
+            source       = "${build.compile.source}"
+            srcdir       = "${plugins.dir}"
+            >
+<!--             <compilerarg value="-Xlint"/> -->
+<!--             <compilerarg value="-Xlint:-serial"/> -->
+<!--             <compilerarg value="-Xlint:-path"/> -->
+        </javac>
+    </target>
+    
+    <!-- ============================= -->
+    <!--  - C O M P I L E - T E S T S  -->
+    <!-- ============================= -->
+    <target name="-compile-tests"
+        depends="-compile">
+<!--         description="Compile the unit tests." -->
+
+        <mkdir dir="${build.test.classes.dir}"/>
+        
+        <javac
+	    target       = "${javac.target}"
+            classpathref = "build.test.classpath"
+            debug        = "${build.compile.debug}"
+            deprecation  = "${build.compile.deprecation}"
+            destdir      = "${build.test.classes.dir}"
+            listfiles    = "${build.compile.listfiles}"
+            source       = "${build.compile.source}"
+            srcdir       = "${src.test.dir}"
+            >
+            <compilerarg value="-Xlint"/>
+            <compilerarg value="-Xlint:-serial"/>
+            <compilerarg value="-Xlint:-path"/>
+        </javac>
+    </target>
+
+    <!-- =========================== -->
+    <!--  - P O S T - C O M P I L E  -->
+    <!-- =========================== -->
+    <target name="-post-compile" depends="-copy-resources"/>        
+    
+    <!-- ================================================================ -->
+    <!-- =======================  Public Targets  ======================= -->
+    <!-- ================================================================ -->
+
+    <!-- =========== -->
+    <!--  C L E A N  -->
+    <!-- =========== -->
+    <target name="clean"
+            depends="-clean-build, -clean-jar, -clean-dist"
+	    description="Remove all the generated outputs.">
+    </target>
+
+    <!-- =================== -->
+    <!--  F U L L - D I S T  -->
+    <!-- =================== -->
+    <target name="full-dist"
+ 	    depends="clean, jar, -full-dist"
+            description="Build the full distribution">
+    </target>
+    
+    <!-- ======= -->
+    <!--  J A R  -->
+    <!-- ======= -->
+    <target name="jar"
+        depends="-compile, -pre-jar, -copy-libs"
+        description="Compile and generate the application jar file.">
+
+	<!-- Prepare the proper string of all companion jar files -->
+        <pathconvert pathsep=" " refid="jar.classpath" property="jar.string">
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*" to="lib/*"/>
+            </chainedmapper>
+        </pathconvert>
+
+        <!-- Put all ${build.classes.dir} into the application jar file -->
+        <jar basedir="${build.classes.dir}"
+	     jarfile="${dist.jar}">
+            <manifest>
+                <attribute name="Main-Class"
+                           value="${Name}"/>
+                <attribute name="Class-Path"
+                           value="${jar.string}"/>
+                <attribute name="Built-By"
+                           value="${build.owner}"/>
+                <attribute name="Specification-Title"
+                           value="${spec.title}"/>
+                <attribute name="Specification-Version"
+                           value="${spec.version}"/>
+                <attribute name="Implementation-Version"
+                           value="${impl.version} ${DSTAMP}"/>
+            </manifest>
+        </jar>
+        
+    </target>
+    
+    <!-- =============== -->
+    <!--  J A V A D O C  -->
+    <!-- =============== -->
+    <target name="javadoc"
+	    depends="-javadoc-build, -post-javadoc, -post-post-javadoc"
+	    description="Generate project documentation."/>
+    
+    <!-- =========== -->
+    <!--  R E J A R  -->
+    <!-- =========== -->
+    <target name="rejar"
+        depends="-clean-build, jar"
+        description="Rebuild jar file from scratch.">
+    </target>
+    
+    <!-- ======= -->
+    <!--  R U N  -->
+    <!-- ======= -->
+    <target name="run"
+        depends="jar"
+        description="Run the application from its GUI.">
+
+	<!-- Default values -->
+	<property name="run.batch" value=""/>
+	<property name="run.step"  value=""/>
+	<property name="run.sheet" value=""/>
+	<property name="run.script" value=""/>
+	
+        <java
+	    classname="${Name}"
+            classpathref="run.classpath"
+            failonerror="true"
+            fork="true"
+            maxmemory="256m">
+            
+            <!-- Specific JVM arguments, if any -->
+<!--    	    <jvmarg value="-verbose:class"/>  -->
+
+	    <!-- For JMX console (no longer needed?) -->
+<!--  	    <sysproperty -->
+<!-- 		key="com.sun.management.jmxremote" -->
+<!-- 		value="true"/> -->
+ 	    
+            <!-- Configuration file for logging -->
+            <sysproperty
+		key="java.util.logging.config.file"
+                value="${config.dir}/logging.properties"/>
+            
+            <!-- Application arguments -->
+ 	    <arg line="${run.batch}"/>
+ 	    <arg line="${run.step}"/>
+ 	    <arg line="${run.sheet}"/>
+ 	    <arg line="${run.script}"/>
+        </java>
+    </target>
+
+    <!-- ========= -->
+    <!--  T E S T  -->
+    <!-- ========= -->
+    <target name="test" depends="-compile-tests"
+	    if="junit.jar.present"
+            description="Run all unit tests in batch." >
+
+	<echo message="Performing unit tests ..."/>
+
+        <delete verbose="${verbose}" dir="${build.test.results.dir}"/>
+        <mkdir dir="${build.test.results.dir}"/>
+	
+	<!-- Specific pattern -->
+     	<property name="tests" value="*Test"/>
+
+	<!-- Default pattern -->
+	<property name="tests" value="*Test"/>
+	<echo message="Unit test pattern : ${tests}"/>
+	
+        <junit
+	    printsummary="yes"
+	    haltonfailure="no" >
+            <classpath refid="run.test.classpath"/>
+            <formatter type="plain" usefile="false"/>
+            <formatter type="xml"/>
+ 	    
+            <!-- Configuration file for logging -->
+            <sysproperty key="java.util.logging.config.file"
+                value="${config.dir}/logging.properties"/>
+
+            <batchtest
+		fork="yes"
+		todir="${build.test.results.dir}">
+                <fileset 
+		    dir="${src.test.dir}"
+		    includes="**/${tests}.java"/>
+            </batchtest>
+        </junit>
+
+	<echo message="Generating reports of unit tests ..."/>
+	<junitreport todir="${build.test.results.dir}">
+	    <fileset dir="${build.test.results.dir}">
+		<include name="TEST-*.xml"/>
+	    </fileset>
+	    <report format="frames" todir="${build.test.results.dir}/html"/>
+	</junitreport>
+	
+    </target>
+    
+    <!-- ======== -->
+    <!--  S A V E -->
+    <!-- ======== -->
+    <target name="save"
+        depends="-init"
+        description="Backup all important files" >
+	
+        <mkdir dir="${backup.dir}/${ant.project.name}"/>
+
+        <!-- Save relevant directories -->
+        <zip
+            update="yes"
+            destfile="${backup.dir}/${ant.project.name}/${DSTAMP}-${machine.name}-src.zip" >
+            <fileset dir="${basedir}"  
+                     includes="build.xml, src/**, config/**, icons/**, www/**, train/*.def, nb/jp/**"
+                     excludes="${dist.excludes},www/docs/api/**,www/branding/**,nb/jp/dist/**"/>
+        </zip>
+
+    </target>
+
+    
+    <!-- ============= -->
+    <!--  U P L O A D  -->
+    <!-- ============= -->
+    <target name="upload"
+            depends="save"
+            description="Upload backup to external server">
+
+	<echo message="Uploading backup file ..."/>
+	<copy
+	    verbose="${verbose}"
+	    todir="${netbackup.dir}/${ant.project.name}">
+	    <fileset dir="${backup.dir}/${ant.project.name}">
+		<include name="**/${DSTAMP}-${machine.name}-*.zip"/>
+	    </fileset>
+	</copy>
+    </target>
+
+</project>

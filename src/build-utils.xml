@@ -1,0 +1,144 @@
+<!-- +=====================================================================+ -->
+<!-- |                                                                     | -->
+<!-- |                           u t i l s . x m l                         | -->
+<!-- |                                                                     | -->
+<!-- +=====================================================================+ -->
+
+<project name="utils" basedir="..">
+    
+    <description>
+	Just a collection of utility targets
+	(not part of main-stream Audiveris project)
+    </description>
+
+    <!-- Give users first chance to override properties -->
+    <property file="${user.home}/.audiveris/build.properties"/>
+
+    <property name="dev.dir"          location="${basedir}/src"/>
+    <property name="config.dir"       location="${basedir}/config"/>
+    <property name="nb.javadoc.dir"   location="${basedir}/dist/javadoc"/>
+
+    <!-- Give users second chance to override properties -->
+    <property file="${dev.dir}/build.properties"/>
+
+    <!-- Finally, get all default property values -->
+    <property file="${dev.dir}/build.default.properties"/>
+
+    <!-- Load the environment variables -->
+    <property environment="env"/>
+
+    <!-- Jalopy task definition -->
+    <taskdef name="jalopy"
+	     classname="de.hunsicker.jalopy.plugin.ant.AntPlugin">
+	<classpath>
+	    <fileset dir="${jalopy.dir}" includes="*.jar" />
+	</classpath>
+    </taskdef>
+
+
+    <!-- =========== -->
+    <!--  - I N I T  -->
+    <!-- =========== -->
+    <target name="-init">
+<!--         description="Initialize the environment." -->
+
+        <!-- Create the time stamp -->
+        <tstamp/>
+
+        <available
+            property="junit.jar.present"
+            file="${junit.jar}"
+	    />
+
+    </target>
+
+    <!-- ================= -->
+    <!--  C H E C K O U T  -->
+    <!-- ================= -->
+    <target name="checkout"
+            depends="-init"
+            description="Export module audiveris from CVS.">
+
+	<delete verbose="${verbose}" dir="${export.dir}"/>
+
+	<!-- Nota : Use of export triggers a bug in ant cvs, so this
+	     workaround for first checking out everything, then
+	     updating for the desired tag. Correct direct command
+	     should be : line="export -r ${tag.version} audiveris"
+	     -->
+	<!--
+	<cvs
+ 	    cvsRoot=":pserver:${cvs.login}:${cvs.password}@audiveris.dev.java.net:/cvs"
+ 	    dest="${export.dir}">
+	    <commandline>
+		<argument line="checkout audiveris"/>
+	    </commandline>
+	
+	    <commandline>
+		<argument line="update -r ${tag.version} audiveris"/>
+	    </commandline>
+	</cvs>
+	     -->
+    </target>
+
+    <!-- ============================= -->
+    <!--  B U I L D - C H E C K O U T  -->
+    <!-- ============================= -->
+    <target name="build-checkout"
+	    description="Build the checkout">
+	<ant
+	    dir="${export.dir}/audiveris/src"
+	    inheritAll="false">
+	    <target name="dist"/>
+	</ant>
+
+    </target>
+
+    <!-- ============================= -->
+    <!--  B U I L D - F R O M - C V S  -->
+    <!-- ============================= -->
+    <target name="build-from-CVS"
+	    depends="checkout, build-checkout"
+	    description="Build everything from CVS" />
+    
+    <!-- ============= -->
+    <!--  F O R M A T  -->
+    <!-- ============= -->
+    <target name="format"
+	    description="Format Java source with Jalopy.">
+	<jalopy
+	    convention="${dev.dir}/java-convention.xml"
+	    history="file"
+	    historymethod="adler32"
+	    loglevel="info"
+	    threads="1" >
+	    <fileset dir="${src.dir}">
+		<include name="**/*.java" />
+		<exclude name="**/package-info.java"/>
+	    </fileset>
+	</jalopy>
+    </target>
+
+    <!-- ===================== -->
+    <!--  P R O P E R T I E S  -->
+    <!-- ===================== -->
+    <target name="properties"
+        description="Print out all properties for the build file.">
+        <echoproperties/>
+    </target>
+
+    <!-- ============================= -->
+    <!--  G L O B A L - R E P L A C E  -->
+    <!-- ============================= -->
+    <target name="global-replace"
+        description="Modify token of every source file">
+	
+	<replace dir="${basedir}"
+		 token="#   Contact dev@audiveris.dev.java.net to report bugs &amp; suggestions.           #"
+		 value="#   Goto http://kenai.com/projects/audiveris to report bugs or suggestions.    #">
+	    <include name="**/*.properties"/>
+	</replace>
+
+    </target>
+
+</project>
