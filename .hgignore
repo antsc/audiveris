@@ -1,0 +1,37 @@
+syntax: regexp
+
+\.hgignore$
+\.chg\..*$
+\.conflict\~$
+\.log$
+\.mid$
+\.orig$
+\.orig\..*$
+\.rej$
+benches
+bugs
+dist
+jars
+lib
+manifest\.mf
+\./midi
+nbproject
+project
+scores
+scores-ref
+scripts
+temp
+tesseract\.log
+www/docs/api
+zong.log
+
+syntax: glob
+
+build/**/*
+build.xml
+index.html
+index.html.*
+# Ignore .jpg and .pdf under the src directory since they are produced via umlet
+# Images handled by conf management should use other suffix (.png for example)
+src/**/*.jpg
+src/**/*.pdf
