@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!-- ======================================================================= -->
+<!--                           i n d e x . h t m l                           -->
+<!-- ======================================================================= -->
+<html lang="en">
+    <head>
+        <title>Audiveris - Open music scanner</title>
+        <script>context = {page:"Home", root:"./"};</script>        
+        <meta name="classification" content="Audiveris home page" />
+        <meta name="description" content="Root of Audiveris presentation" />
+        
+        <meta name="author" content="Hervé Bitteur" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">        
+        <link rel="icon" href="branding/images/audiveris-icons-256.ico" type="image/x-icon" />
+        <link rel="stylesheet" href="branding/css/global.css"/>
+        <style type="text/css">
+            /*<![CDATA[*/
+            #highlights {
+                font-size: 13px;
+                float: left;
+                width: 320px;
+                margin-top: 0px;
+            }
+            #highlights ul {
+                margin: 0px;
+                margin-bottom: 10px;
+            }
+            #abstract {
+                width: 540px;
+                padding-top: 30px;
+            }
+            #snapshot {
+                float: left;
+                width: 220px;
+                height: 172px;
+                margin-top: 5px;
+                box-shadow:0px 5px 5px rgba(0,0,0,0.3);
+            }
+            #thumbnail {
+                position: absolute;
+                left:350px;
+                top:320px;
+                    
+            }
+            #news {
+                width: 180px;
+            }
+            #development {
+                width: 330px;
+            }
+            #help {
+                width: 395px;
+            }
+            #download {
+                width: 800px;
+            }
+            /*]]>*/
+        </style>
+    </head>
+    <body>
+        <script src="branding/js/header.js"></script> 
+        
+        <div class="main">
+            <div class="block" id="abstract">
+                <b><i>Audiveris</i></b> 
+                is an open-source <b><i>Optical Music Recognition</i></b> 
+                software which processes the image of a music sheet to 
+                automatically provide <i>symbolic</i> music information in 
+                <b>MusicXML</b> standard.
+                <br/>
+                This opens the door to many tools (score editor, MIDI 
+                sequencer, ...) which can use this symbolic data for such tasks
+                as edit, play, print, re-publish, transpose, query, etc.
+
+                <p>Main features:</p>
+
+                <div id="highlights">
+                    <ul>
+                        <li>Printed music as input (no handwritten music)</li>
+                        <li>Standard music notation (no tablatures yet)</li>
+                        <li>Input formats: PDF, JPG, PNG, TIFF, BMP, ...</li>
+                        <li>Output format: <a href="http://www.recordare.com/xml.html">MusicXML</a> version 2</li>
+                        <li>Any number of pages per score, of parts per system,
+                            of staves per part, of voices per measure</li>
+                        <li>Internal neural network trainable by end user</li>
+                        <li>Available on Windows and Linux platforms</li>
+                        <li>GNU GPL V2 license</li>
+                    </ul>
+                </div>
+                <div id="snapshot">
+                    <a href="docs/manual/snapshots.html">
+                        <img src="docs/images/dichterliebe-pict-voices-220.png">
+                    </a>
+                </div>
+            </div>
+
+            <div class="block" id="news">
+                <h2>News</h2>
+                <ul class="light">
+                    <li><a class="light" href="docs/manual/installation.html">Just switched to Tesseract 3.x</a>
+                        <div class="creation-date">June 13, 2012</div>
+                    </li>
+                    <li><a class="light" href="docs/manual/handbook.html">Handbook available</a>
+                        <div class="creation-date">May 23, 2012</div>
+                    </li>
+                    <li><a class="light" href="http://kenai.com/projects/audiveris/downloads/download/audiveris-4.1beta.3162.msi">Windows installer released</a>
+                        <div class="creation-date">February 22, 2012</div>
+                    </li>
+                    <li><a class="light" href="http://kenai.com/projects/audiveris/downloads">New V4.1beta released</a>
+                        <div class="creation-date">February 1, 2012</div>
+                    </li>
+                    <li><a class="light" href="http://fosdem.org/2012/">Audiveris at FOSDEM 2012</a>
+                        <div class="creation-date">January 11, 2012</div>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div class="block" id="development">
+                <h2>Development</h2>
+                <p>Audiveris is developed in Java, and invokes Google Tesseract
+                    OCR (C++) for text recognition.</p>
+                <p>Project components (source code, binaries, issues tracking, forum)
+                    are available on <a href="http://kenai.com/projects/audiveris/">
+                        Kenai</a>.</p>
+            </div>
+
+            <div class="block" id="help">
+                <h2>Help wanted for</h2>
+                <ul>
+                    <li>Coupling with <a href="http://musescore.org">MuseScore</a>
+                        to edit, print, play, etc</li>
+                    <li>Use of cloud computing to provide "OMR as a service"</li>
+                    <li>Automated evaluation of transcription results</li>
+                    <li>Microedition features to enable crowd-sourcing approaches</li>
+                </ul>
+            </div>
+        </div>
+        
+        <script src="branding/js/footer.js"></script> 
+    </body>
+</html>

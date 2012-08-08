@@ -1,0 +1,115 @@
+<!-- +=====================================================================+ -->
+<!-- |                                                                     | -->
+<!-- |                           u t i l s . x m l                         | -->
+<!-- |                                                                     | -->
+<!-- +=====================================================================+ -->
+
+<project name="utils" basedir="..">
+    
+    <description>
+        Standalone project for a collection of utility targets
+    </description>
+
+    <import file="${basedir}/build.xml"/>
+
+    <!-- Just in case these properties are not already set -->
+    <property name="backup.dir"    value="m:/backup" />
+    <property name="machine.name"  value="default" />
+    <property name="netbackup.dir" value="x:/backup" />
+    
+    <!-- ============= -->
+    <!--  F O R M A T  -->
+    <!-- ============= -->
+    <target name="format"
+            description="Format Java source with Jalopy.">
+
+        <!-- Jalopy task definition -->
+        <taskdef name="jalopy"
+                 classname="de.hunsicker.jalopy.plugin.ant.AntPlugin"
+		 classpathref="tools.classpath" />
+        
+        <jalopy
+            convention="${dev.dir}/jalopy/java-convention.xml"
+            history="file"
+            historymethod="adler32"
+            loglevel="info"
+            threads="1" >
+            <fileset dir="${src.dir}">
+                <include name="**/*.java" />
+                <exclude name="**/package-info.java"/>
+            </fileset>
+        </jalopy>
+    </target>
+
+    <!-- ===================== -->
+    <!--  P R O P E R T I E S  -->
+    <!-- ===================== -->
+    <target name="properties"
+        description="Print out all properties for the build file.">
+        <echoproperties/>
+    </target>
+
+    <!-- ============================= -->
+    <!--  G L O B A L - R E P L A C E  -->
+    <!-- ============================= -->
+    <target name="global-replace"
+        description="Modify token of every source file">
+	
+<!--        <replace encoding="utf8" dir="${src.dir}">
+            <replacetoken>Copyright (C) Hervé Bitteur 2000-2011. All rights reserved.</replacetoken>
+            <replacevalue>Copyright © Hervé Bitteur 2000-2012. All rights reserved.  </replacevalue>
+            <include name="**/*.properties"/>
+        </replace>-->
+	     
+
+	<replaceregexp
+	    encoding="utf8"
+	    match="logger.log\(\s*Level.WARNING,\s*"
+	    replace="logger.warning("
+	    flags="g"
+	    byline="true">
+	    <fileset dir="${src.dir}">
+		<include name="**/BasicNest.java"/>
+	    </fileset>
+        </replaceregexp>
+	
+    </target>
+    
+    <!-- ======== -->
+    <!--  S A V E -->
+    <!-- ======== -->
+    <target name="save"
+       description="Backup all important files" >
+        
+        <mkdir dir="${backup.dir}/${name}"/>
+
+        <!-- Save relevant directories -->
+        <zip
+            update="yes"
+            destfile="${backup.dir}/${name}/${DSTAMP}-${machine.name}-src.zip" >
+            <fileset dir="${basedir}"  
+                     includes="build.xml, dev/**, src/**, settings/**, eval/**, symbols/**, www/**, train/*.def, nb/jp/**"
+                     excludes="${dist.excludes},www/docs/api/**,www/branding/**,dev/externals/**,dev/tools/**"/>
+        </zip>
+
+    </target>
+
+    
+    <!-- ============= -->
+    <!--  U P L O A D  -->
+    <!-- ============= -->
+    <target name="upload"
+            depends="save"
+            description="Upload backup to external server">
+
+        <echo message="Uploading backup file ..."/>
+        <copy
+            verbose="${verbose}"
+            todir="${netbackup.dir}/${name}">
+            <fileset dir="${backup.dir}/${name}">
+                <include name="**/${DSTAMP}-${machine.name}-*.zip"/>
+            </fileset>
+        </copy>
+    </target>
+
+</project>

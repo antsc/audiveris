@@ -1,0 +1,71 @@
+//----------------------------------------------------------------------------//
+//                                                                            //
+//                         L o c a t i o n E v e n t                          //
+//                                                                            //
+//----------------------------------------------------------------------------//
+// <editor-fold defaultstate="collapsed" desc="hdr">                          //
+//  Copyright © Hervé Bitteur 2000-2012. All rights reserved.                 //
+//  This software is released under the GNU General Public License.           //
+//  Goto http://kenai.com/projects/audiveris to report bugs or suggestions.   //
+//----------------------------------------------------------------------------//
+// </editor-fold>
+package omr.selection;
+
+import omr.log.Logger;
+
+import omr.score.common.PixelRectangle;
+
+import java.awt.Rectangle;
+
+/**
+ * Class {@code LocationEvent} is UI Event that represents a new
+ * location (a rectangle, perhaps degenerated to a point) within the
+ * Sheet coordinates space.
+ *
+ * @author Hervé Bitteur
+ */
+public class LocationEvent
+    extends UserEvent
+{
+    //~ Static fields/initializers ---------------------------------------------
+
+    /** Usual logger utility */
+    private static final Logger logger = Logger.getLogger(LocationEvent.class);
+
+    //~ Instance fields --------------------------------------------------------
+
+    /**
+     * The location rectangle, which can be degenerated to a point when both
+     * width and height values equal zero
+     */
+    private final PixelRectangle rectangle;
+
+    //~ Constructors -----------------------------------------------------------
+
+    /**
+     * Creates a new LocationEvent object.
+     * @param source the actual entity that created this event
+     * @param hint how the event originated
+     * @param movement the precise mouse movement
+     * @param rectangle the location within the sheet space
+     */
+    public LocationEvent (Object         source,
+                          SelectionHint  hint,
+                          MouseMovement  movement,
+                          PixelRectangle rectangle)
+    {
+        super(source, hint, movement);
+        this.rectangle = rectangle;
+    }
+
+    //~ Methods ----------------------------------------------------------------
+
+    //---------//
+    // getData //
+    //---------//
+    @Override
+    public PixelRectangle getData ()
+    {
+        return rectangle;
+    }
+}
