@@ -1,0 +1,54 @@
+# First, use regexp syntax -------------------------------------------------------
+syntax: regexp
+
+\..*~$
+\.hgignore$
+\.chg\..*$
+\.conflict\~$
+\.log$
+audiveris\.exe$
+audiveris-console\.exe$
+\.mf$
+\.mid$
+\.msi$
+\.orig$
+\.orig\..*$
+\.rej$
+\.zip$
+benches$
+build$
+dist$
+jars$
+midi$
+pdf$
+print$
+scores$
+scripts$
+settings$
+temp$
+tesseract\.log
+bin
+.DS_Store
+.project
+.settings
+manifest.mf
+nbbuild.xml
+.classpath
+# Now, switch to glob syntax -------------------------------------------------
+syntax: glob
+
+# Ignore .jpg and .pdf under the src directory since they are produced via umlet
+# Images handled by conf management should use other suffix (.png for example)
+src/**/*.jpg
+src/**/*.pdf
+dev/material/*.jpg
+
+audiveris.bat
+manifest.mf
+train/core/*
+eval/backup-neural-network.xml
+nbproject/configs
+www/docs/api
+www/nbproject
+ocr/tessdata/*
+ocr/tessdata

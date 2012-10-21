@@ -1,0 +1,530 @@
+<!-- +=====================================================================+ -->
+<!-- |                                                                     | -->
+<!-- |                         b u i l d . x m l                           | -->
+<!-- |                                                                     | -->
+<!-- | abstract: Netbeans/ant build for Audiveris application              | -->
+<!-- | location: ${basedir}/build.xml                                      | -->
+<!-- | author:   herve.bitteur@audiveris.org                               | -->
+<!-- |                                                                     | -->
+<!-- +=====================================================================+ -->
+
+<!-- Initial NetBeans comments: -->
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<!-- By default, only the Clean and Build commands use this build script. -->
+<!-- Commands such as Run, Debug, and Test only use this build script if -->
+<!-- the Compile on Save feature is turned off for the project. -->
+<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
+<!-- in the project's Project Properties dialog box.-->
+
+<project name="audiveris" default="default" basedir=".">
+    <description>
+        Build, test, and run the Audiveris project
+    </description>
+    
+    <!-- Create the time stamp -->
+    <tstamp/>
+    
+    <!-- Mercurial -->
+    <condition property="hg.present" else="false">
+        <available file="${basedir}/.hg" />
+    </condition>
+    <echo level="verbose" message="hg.present=${hg.present}" />
+            
+    <!-- Operating system -->
+    <condition property="is.windows" else="false">
+        <os family="windows"/>
+    </condition>
+    <echo level="verbose" message="is.windows=${is.windows}" />
+    <condition property="is.mac" else="false">
+        <os family="mac" />
+    </condition>
+    <echo level="verbose" message="is.mac=${is.mac}" />
+    <condition property="is.unix" else="false">
+        <os family="unix" />
+    </condition>
+    <echo level="verbose" message="is.unix=${is.unix}" />
+
+    <!-- Environment -->
+    <property name="name"      value="audiveris" />
+    <property name="Name"      value="Audiveris" />
+    <property name="Company"   value="${Name} Ltd." />
+    <property name="CompanyId" value="${Name}Ltd" />
+    <property environment="env"/>    
+    <property name="dev.dir"   location="${basedir}/dev"/>
+    
+    <!-- Environment (user) for Mac variants, if any -->
+    <!-- TODO: implement this for Mac -->        
+    
+    <!-- Environment (user) for Windows variants, if any -->
+    <property file="${env.APPDATA}/${CompanyId}/${name}/settings/build.properties"/>        
+    
+    <!-- Environment (user) for Unix variants, if any -->
+    <property file="${env.XDG_CONFIG_HOME}/${CompanyId}/${name}/settings/build.properties"/>        
+    <property file="${env.HOME}/.config/${CompanyId}/${name}/settings/build.properties"/>  
+          
+     <!-- Environment (developer specific), if any -->
+    <property file="${dev.dir}/build.properties"/>
+    
+    <!-- Environment (default) -->
+    <property file="${dev.dir}/build.default.properties"/>
+    
+    <!-- Classpaths -->    
+    <path id="build.classpath">
+        <pathelement path="${build.classes.dir}"/>
+    </path>
+    <path id="tools.classpath">
+        <fileset dir="${tools.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+    <path id="externals.classpath">
+        <fileset dir="${externals.dir}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>        
+    
+    <!-- Import for Mac, if any -->
+    <condition property="mac-import" else="none"
+               value="dev/mac/-mac.xml">
+        <os family="mac"/>
+    </condition>
+    <echo level="verbose" message="mac-import=${mac-import}" />
+    <import optional="true" file="${mac-import}" />
+    
+    <!-- Import for Unix, if any -->
+    <condition property="unix-import" else="none"
+               value="dev/unix/-unix.xml">
+        <os family="unix"/>
+    </condition>
+    <echo level="verbose" message="unix-import=${unix-import}" />
+    <import optional="true" file="${unix-import}" />
+    
+    <!-- Import for Windows, if any -->
+    <condition property="windows-import" else="none"
+               value="dev/windows/-windows.xml">
+        <os family="windows"/>
+    </condition>
+    <echo level="verbose" message="windows-import=${windows-import}" />
+    <import optional="true" file="${windows-import}" /> 
+
+    <!-- Import NetBeans implementation targets -->
+    <import file="nbproject/build-impl.xml"/>
+    
+    <!-- Needed for ant-contrib tasks -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml"
+	     classpathref="tools.classpath" />
+
+    <!-- ===  Public Targets  ============================================== -->
+    
+    <!-- ===================== -->
+    <!--  I N S T A L L E R S  -->
+    <!-- ===================== -->
+    <target name="installers"
+            depends="jar, -installers-mac, -installers-unix, -installers-windows"
+            description="Build the OS-dependent installers for each architecture">
+    </target>
+    
+    <!-- ======= -->
+    <!--  S R C  -->
+    <!-- ======= -->
+    <target name="src"
+            depends="clean"
+            description="Pack the source distribution">
+        
+        <!-- Generate the global zip archive -->
+        <zip 
+            destfile="${basedir}/${impl.name}-src.zip" >
+
+            <!-- Build -->
+            <zipfileset dir="${basedir}"  prefix="${name}"
+                        includes="build.xml"/>
+
+            <!-- NetBeans project -->
+            <zipfileset dir="${basedir}/nbproject" prefix="${name}/nbproject"
+                        includes="**"
+                        excludes="${dist.excludes}, **/configs/*"/>
+        
+            <!-- Ini Launch4J files -->
+            <zipfileset dir="${basedir}" prefix="${name}"
+                        includes="*.ini"
+                        excludes="${dist.excludes}"/>
+
+            <!-- ocr files -->
+            <zipfileset dir="${ocr.dir}" prefix="${name}/ocr"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+        
+            <!-- dev files -->
+            <zipfileset dir="${dev.dir}" prefix="${name}/dev"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+        
+            <!-- res files -->
+            <zipfileset dir="${res.dir}" prefix="${name}/res"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+        
+            <!-- eval files -->
+            <zipfileset dir="${eval.dir}" prefix="${name}/eval"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+        
+            <!-- settings files -->
+            <zipfileset dir="${settings.dir}" prefix="${name}/settings"
+                        includes="**"
+                        excludes="${dist.excludes}, **/run.properties"/>
+        
+            <!-- plugins files -->
+            <zipfileset dir="${plugins.dir}" prefix="${name}/plugins"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+            
+            <!-- Source main and test files -->
+            <zipfileset dir="${basedir}/src" prefix="${name}/src"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+
+            <!-- Examples files -->
+            <zipfileset dir="${examples.dir}" prefix="${name}/examples"
+                        includes="**"
+                        excludes="${dist.excludes}"/>
+
+            <!-- Www (without API javadoc) files -->
+            <zipfileset dir="${www.dir}" prefix="${name}/www"
+                        includes="**"
+                        excludes="${dist.excludes}, docs/api/**"/>
+
+            <!-- Train files -->
+            <zipfileset dir="${train.dir}" prefix="${name}/train"
+                        includes="**/*.xml,**/.glyphignore"
+                        excludes="${dist.excludes}"/>
+        </zip>
+    </target>
+    
+    <!-- ===  Internal Targets  ============================================ -->
+
+    <!-- ===================== -->
+    <!--  - C L E A N - M A C  -->
+    <!-- ===================== -->
+    <target name="-clean-mac" if="${is.mac}">
+      <antcall target="mac.-clean" />
+    </target>
+
+    <!-- ======================= -->
+    <!--  - C L E A N - U N I X  -->
+    <!-- ======================= -->
+    <target name="-clean-unix" if="${is.unix}">
+      <antcall target="unix.-clean" />
+    </target>
+
+    <!-- ============================= -->
+    <!--  - C L E A N - W I N D O W S  -->
+    <!-- ============================= -->
+    <target name="-clean-windows" if="${is.windows}">
+      <antcall target="windows.-clean" />
+    </target>
+
+    <!-- =============== -->
+    <!--  - H G - T I P  -->
+    <!-- =============== -->
+    <!-- Retrieve Hg tip revision -->
+    <target name="-hg-tip"
+            if="${hg.present}">
+        
+        <taskdef name="hg"
+                 classpathref="tools.classpath"
+                 classname="net.sourceforge.ant4hg.taskdefs.HgTask"/>           
+        
+        <hg cmd="log" dir="${basedir}">
+            <arg value="-rtip"/>
+        </hg>
+        
+        <!-- 
+        <echo message="==========================" />
+        <echo message="revision=${ant4hg.log.revision}" />
+        <echo message="changeset=${ant4hg.log.changeset}" />
+        <echo message="tag=${ant4hg.log.tag}" />
+        <echo message="user=${ant4hg.log.user}" />
+        <echo message="date=${ant4hg.log.date}" />
+        <echo message="summary=${ant4hg.log.summary}" />
+        -->
+         
+        <property name="impl.version" value="${spec.version}.${ant4hg.log.revision}" />
+        <property name="impl.name" value="${name}-${impl.version}" />
+
+    </target>
+
+    <!-- =============================== -->
+    <!--  - I N S T A L L E R S - M A C  -->
+    <!-- =============================== -->
+    <target name="-installers-mac" if="${is.mac}">
+      <antcall target="mac.-installers" />
+    </target>
+
+    <!-- ================================= -->
+    <!--  - I N S T A L L E R S - U N I X  -->
+    <!-- ================================= -->
+    <target name="-installers-unix" if="${is.unix}">
+      <antcall target="unix.-installers" />
+    </target>
+
+    <!-- ======================================= -->
+    <!--  - I N S T A L L E R S - W I N D O W S  -->
+    <!-- ======================================= -->
+    <target name="-installers-windows" if="${is.windows}">
+      <antcall target="windows.-installers" />
+    </target>
+    
+    <!-- ============================= -->
+    <!--  - J A V A D O C - B U I L D  -->
+    <!-- ============================= -->
+    <!-- Generate project documentation -->
+    <target name="-javadoc-build"
+            depends="-uml, audiveris-impl.-javadoc-build, -publish-doc"/>
+
+    <!-- ===================== -->
+    <!--  - N O - H G - T I P  -->
+    <!-- ===================== -->
+    <!-- Cope with no tip revision -->
+    <target name="-no-hg-tip"
+            unless="${hg.present}">
+         
+        <property name="impl.version" value="${spec.version}" />
+        <property name="impl.name" value="${name}-${spec.version}" />
+
+    </target>
+
+    <!-- ======================= -->
+    <!--  - P O S T - C L E A N  -->
+    <!-- ======================= -->
+    <!-- Performs the cleanup depending on OS -->
+    <target name="-post-clean"
+            depends="-clean-mac, -clean-unix, -clean-windows">
+        <!-- Non OS dependent part -->
+        <delete verbose="${verbose}">
+            <fileset dir="${basedir}" includes="*.zip"/>
+        </delete> 
+    </target>
+
+    <!-- ===================== -->
+    <!--  - P O S T - I N I T  -->
+    <!-- ===================== -->
+    <target name="-post-init"
+	    depends="-hg-tip, -no-hg-tip">
+        <echo level="verbose" message="-post-init impl.name=${impl.name}" />
+    </target>
+
+    <!-- =================== -->
+    <!--  - P O S T - J A R  -->
+    <!-- =================== -->
+    <target name="-post-jar">
+        <delete verbose="${verbose}">
+            <fileset dir="${dist.dir}" 
+                     includes="README.TXT"/>
+        </delete>
+    </target>
+
+    <!-- ================= -->
+    <!--  - P R E - J A R  -->
+    <!-- ================= -->
+    <target name="-pre-jar">
+
+        <!-- Prepare a (half) manifest -->
+        <echo file="${basedir}/manifest.mf" append="false">Manifest-Version: 1.0
+Built-By: ${Company}
+Specification-Title: ${Name}
+Specification-Vendor: ${Company}
+Specification-Version: ${impl.version}
+</echo>
+
+        <!-- Copy resource properties to classes -->
+        <copy todir="${build.classes.dir}" verbose="$verbose">
+            <fileset dir="${src.dir}" includes="**/*.properties"/>
+        </copy>
+
+        <!-- Copy icon files into the classes dir -->
+        <copy
+            verbose="${verbose}"
+            todir="${build.classes.dir}">
+            <fileset dir="${src.dir}"
+                     includes="**/icon*.png"/>
+        </copy>
+
+        <!-- Purge build/classes folder from documentation items -->
+        <delete
+            verbose="${verbose}"
+            includeEmptyDirs="true">
+            <fileset dir="${build.classes.dir}" 
+                     includes="**/*.html,**/doc-files/*,**/doc-files"/>
+        </delete>
+
+    </target>
+
+    <!-- ========================= -->
+    <!--  - P U B L I S H - D O C  -->
+    <!-- ========================= -->
+    <target name="-publish-doc">
+        <!-- Copy JavaDoc from dist folder to the www folder -->
+        <mkdir dir="${www.dir}/docs/api"/>
+        <copy todir="${www.dir}/docs/api/" verbose="$verbose">
+            <fileset dir="${dist.javadoc.dir}" includes="**/*"/>
+        </copy>
+    </target>
+
+    <!-- ========= -->
+    <!--  - U M L  -->
+    <!-- ========= -->
+    <!-- Generate UML drawings with Umlet utility -->
+    <target name="-uml">
+        
+        <for param="file">
+            <path>
+                <fileset dir="${src.dir}" includes="**/*.uxf">
+                    <depend targetdir="${src.dir}">
+                        <mapper type="glob" from="*.uxf" to="*.jpg"/>
+                    </depend>
+                </fileset>
+                <fileset dir="${material.dir}" includes="**/*.uxf">
+                    <depend targetdir="${material.dir}">
+                        <mapper type="glob" from="*.uxf" to="*.jpg"/>
+                    </depend>
+                </fileset>
+            </path>
+            <sequential>
+                <for list="jpg,pdf" param="format">
+                    <sequential>
+                        <echo>Umlet format=@{format} file=@{file}</echo>
+                        <java
+                            fork="true"
+			    classname="com.baselet.control.Main"
+			    classpathref="tools.classpath">
+ 			    <arg value="-action=convert" />
+                            <arg value="-format=@{format}" />
+                            <arg value="-filename=@{file}" />
+                        </java>
+                    </sequential>
+                </for>
+            </sequential>
+        </for>
+        
+    </target>
+
+<!--
+     Properties set: unix-like (if it is unix or linux), x64 (if it is 64-bits),
+         register- size (32 or 64) 
+    <target name="check-architecture" depends="check-family,check-register" >
+        <echo>Register size: ${register-size}</echo>
+        <echo>OS Family: ${os-family}</echo>
+    </target>
+
+     =================================================================== 
+     Checking the architecture 
+    <target name="check-family" >
+        <condition property="os-family" value="unix" else="windows">
+            <os family="unix" />
+        </condition>
+
+        <condition property="unix">
+            <os family="unix" />
+        </condition>
+    </target>
+
+    <target name="check-register" depends="reg-unix,reg-windows">
+    </target>
+
+     Test under GNU/Linux 
+    <target name="reg-unix" if="unix">
+        <exec dir="." executable="uname" outputproperty="result">
+            <arg line="-m"/>
+        </exec>
+
+         String ends in 64 
+        <condition property="x64">
+            <matches string="${result}" pattern="^.*64$"/>
+        </condition>
+
+        <condition property="register-size" value="64" else="32">
+            <isset property="x64"/>
+        </condition>
+    </target>
+
+     Test under MS/Windows
+    <target name="reg-windows" unless="unix">
+         64 bit Windows versions have the variable "ProgramFiles(x86)" 
+        <exec dir="." executable="cmd" outputproperty="result">
+            <arg line="/c SET ProgramFiles(x86)"/>
+        </exec>
+
+     String ends in "Program Files (x86)" 
+        <condition property="x64">
+            <matches string="${result}" pattern="^.*=.*Program Files \(x86\)"/>
+        </condition>
+
+        <condition property="register-size" value="64" else="32">
+            <isset property="x64"/>
+        </condition>
+    </target> -->
+<!--
+
+    There exist several targets which are by default empty and which can be 
+    used for execution of your tasks. These targets are usually executed 
+    before and after some main targets. They are: 
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported 
+    nbproject/build-impl.xml file. 
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are: 
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project 
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="audiveris-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on 
+    the compile target as the regular run target does. Again, for a list of available 
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file. 
+
+    -->
+</project>

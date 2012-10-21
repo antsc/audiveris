@@ -1,0 +1,334 @@
+<!-- +=====================================================================+ -->
+<!-- |                                                                     | -->
+<!-- |                      - w i n d o w s . x m l                        | -->
+<!-- |                                                                     | -->
+<!-- +=====================================================================+ -->
+
+<project name="windows" basedir="../..">
+  
+    <description>
+        All targets specific to Windows platform.
+    
+        Targets are presented in alphabetical order, regardless of initial '-'.
+        An initial '-' indicates an internal target.
+    </description>
+  
+  <!--
+      To generate 32-bit and 64-bit Windows installers      
+      Symbolic folders names to use:
+      
+      for 32-bit package (w/ their target on Win64)
+        CommonFilesFolder  - C:\Program Files (x86)\Common Files\ 
+        ProgramFilesFolder - C:\Program Files (x86)\
+        SystemFolder       - C:\Windows\SysWOW64\
+        
+      for 64-bit package
+        CommonFiles64Folder  - C:\Program Files\Common Files\
+        ProgramFiles64Folder - C:\Program Files\
+        System64Folder       - C:\Windows\system32\
+    -->    
+  
+    <!-- ===  Internal Targets  ============================================ --> 
+  
+    <!-- ========= -->
+    <!--  - B A T  -->
+    <!-- ========= -->
+    <target name="-bat"           
+            if="${is.windows}">
+        <!-- .bat file for windows -->
+        <echo file="${basedir}/${name}.bat" append="false">@ECHO OFF
+            REM ${name}.bat
+            setlocal
+            java -Xms512M -Xmx512M -jar dist/${name}.jar %1 %2 %3 %4 %5 %6 %7 %8 %9
+            endlocal
+        </echo>
+    
+    </target>
+  
+    <!-- ===================== -->
+    <!--  - B U I L D - M S I  -->
+    <!-- ===================== -->
+    <target name="-build-msi"
+            depends="-wix-cleanup"
+            if="${is.windows}">
+    
+        <echo message="Building msi installer for arch ${arch}" />
+        <echo message="Beware, this task takes several minutes and produces many warnings..." />
+    
+        <!-- Compilation -->
+        <wix mode="candle"> 
+            <candleParameter name="myArch"         value="${arch}"/>
+            <candleParameter name="myCompany"      value="${Company}"/>            
+            <candleParameter name="myCompanyId"    value="${CompanyId}"/>            
+            <candleParameter name="myConsole"      value="${name}-console"/>
+            <candleParameter name="myDll"          value="${dll.dir}"/>
+            <candleParameter name="myDistLib"      value="${dist.dir}/lib"/>
+            <candleParameter name="myEval"         value="${eval.dir}"/>
+            <candleParameter name="myExamples"     value="${examples.dir}"/>
+            <candleParameter name="myProductName"  value="${name}"/>
+            <candleParameter name="myIconSource"   value="${res.dir}/all-icons-256.ico"/>
+            <candleParameter name="myImplVersion"  value="${impl.version}"/>
+            <candleParameter name="myJar"          value="${dist.jar}"/>
+            <candleParameter name="myMaterial"     value="${material.dir}"/>
+            <candleParameter name="myMsmDir"       value="${dev.windows.dir}"/>
+            <candleParameter name="myOcr"          value="${ocr.dir}"/>
+            <candleParameter name="myPlugins"      value="${plugins.dir}"/>
+            <candleParameter name="myRes"          value="${res.dir}"/>
+            <candleParameter name="mySoftware"     value="${name}"/>
+            <candleParameter name="myTemplates"    value="${templates.dir}"/>
+            <candleParameter name="myTrain"        value="${train.dir}"/>
+            <candleParameter name="myWww"          value="${www.dir}"/>
+            <candleParameter name="myGs"           value="${gs.windows.dir}"/>
+      
+            <candleArg line="-out ${dist.dir}\"/>             
+            <candleArg line="-arch ${arch}"/>        
+      
+            <sources dir="${dev.windows.dir}">
+                <include name="*.wxs"/>
+            </sources>
+        </wix>
+    
+        <!-- Link -->
+        <wix mode="light"
+             target="${dist.dir}/${impl.name}-${arch}.msi">
+            <lightArg line="-ext WixUIExtension" />
+            <lightArg line="-dWixUILicenseRtf=${res.dir}/GPLv2.rtf" />
+            <lightArg line="-sice:ICE91" />
+            
+            <sources dir="${dist.dir}/">
+                <include name="*.wixobj"/>
+            </sources>
+        </wix>
+    
+    </target>
+  
+    <!-- ============= -->
+    <!--  - C L E A N  -->
+    <!-- ============= -->
+    <target name="-clean"
+            if="${is.windows}">
+        <!-- Remove all the generated outputs for Windows -->
+        <delete verbose="${verbose}">
+            <fileset dir="${basedir}" includes="*.exe, *.bat"/>
+        </delete> 
+    </target>
+  
+    <!-- ============================= -->
+    <!--  - D O - I N S T A L L E R S  -->
+    <!-- ============================= -->
+    <target name="-do-installers"
+            if="${is.windows}">
+        
+        <!-- Definition for wix task (et al.) -->
+        <taskdef 
+            resource="org/apache/ant/dotnet/antlib.xml"
+            classpathref="tools.classpath" />
+    
+        <!-- Build for x86 -->
+        <antcall target="-build-msi">
+            <param name="arch" value="x86" />
+        </antcall>
+    
+        <!-- Build for x64 -->
+        <antcall target="-build-msi">
+            <param name="arch" value="x64" />
+        </antcall>
+    
+    </target>
+  
+    <!-- ========= -->
+    <!--  - E X E  -->
+    <!-- ========= -->
+    <target name="-exe"           
+            depends="-launch4j"
+            if="${is.windows}">                
+    
+        <!-- Build Windows executable without console -->
+        <launch4j>
+            <config headerType="gui"
+                    outfile="${name}.exe"
+                    dontWrapJar="true"
+                    jarPath="dist/${name}.jar" >
+                <jre minVersion="${jre.min}"/>
+                <splash file="${res.dir}/splash.bmp"/>
+            </config>
+        </launch4j>	
+    </target>
+  
+    <!-- ========================= -->
+    <!--  - E X E - C O N S O L E  -->
+    <!-- ========================= -->
+    <target name="-exe-console"   
+            depends="-launch4j"
+            if="${is.windows}">
+    
+        <!-- Build Windows executable with console -->
+        <launch4j fileVersion="${impl.version}">
+            <config headerType="console"
+                    outfile="${name}-console.exe"
+                    dontWrapJar="true"
+                    jarPath="dist/${name}.jar" >
+                <jre minVersion="${jre.min}"/>
+            </config>
+        </launch4j>	
+    </target>
+  
+    <!-- ======================= -->
+    <!--  - I N S T A L L E R S  -->
+    <!-- ======================= -->
+    <!-- Build Windows installers for x86 and x64 architectures-->
+    <target name="-installers"
+            depends="-execs, -wxs-generation, -do-installers, -wix-cleanup, -wxs-cleanup"
+            if="${is.windows}"/>
+  
+    <!-- =================== -->
+    <!--  - L A U N C H 4 J  -->
+    <!-- =================== -->
+    <target name="-launch4j"
+            if="${is.windows}">
+        <!-- launch4j task definition -->
+        <taskdef name="launch4j"
+                 classname="net.sf.launch4j.ant.Launch4jTask">
+            <classpath>
+                <fileset dir="${launch4j.dir}" includes="launch4j.jar" />
+                <fileset dir="${launch4j.dir}/lib" includes="xstream.jar" />
+            </classpath>
+        </taskdef>
+    </target>
+  
+    <!-- ============= -->
+    <!--  - E X E C S  -->
+    <!-- ============= -->
+    <!-- Build all Windows executables -->
+    <target name="-execs"
+            depends="-bat, -exe, -exe-console"
+            if="${is.windows}"/>
+  
+    <!-- ========================= -->
+    <!--  - W I X - C L E A N U P  -->
+    <!-- ========================= -->
+    <target name="-wix-cleanup"
+            if="${is.windows}">
+        <echo message="Cleaning up WiX temporary files in ${dist.dir}" />
+    
+        <!-- Clean up temporary files in dist -->
+        <delete verbose="${verbose}"> 
+            <fileset dir="${dist.dir}" includes="*.wix*"/>
+        </delete>
+    
+    </target>
+  
+    <!-- ========================= -->
+    <!--  - W X S - C L E A N U P  -->
+    <!-- ========================= -->
+    <target name="-wxs-cleanup"
+            if="${is.windows}">
+        <echo message="Cleaning up generated wxs files in ${dev.windows.dir}"/>
+    
+        <!-- Clean up temporary files in dev/windows -->
+        <delete verbose="${verbose}"> 
+            <fileset dir="${dev.windows.dir}" includes="gen-*.*"/>
+        </delete>
+    
+    </target>
+
+    <!-- =============================== -->
+    <!--  - W X S - G E N E R A T I O N  -->
+    <!-- =============================== -->
+    <target name="-wxs-generation"
+            if="${is.windows}">
+        <!-- Harvesting of directories -->
+    
+        <!-- Folders for common location -->
+    
+        <property name="heat.options" value="-nologo -gg -g1 -sfrag" />
+    
+        <echo message="buiding ${dev.windows.dir}/gen-common-lib.wxs" />
+        <exec executable="heat">
+            <arg value="dir"/>
+            <arg value="${dist.dir}/lib"/>
+            <arg line="${heat.options}"/>
+            <arg line="-dr distDirId"/>
+            <arg line="-cg lib.CID"/>
+            <arg line="-var var.myDistLib"/>
+            <arg line="-out ${dev.windows.dir}/gen-common-lib.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-common-ocr.wxs" />
+        <exec executable="heat">
+            <arg value="dir"/>
+            <arg value="${ocr.dir}"/>
+            <arg line="${heat.options}"/>
+            <arg line="-dr INSTALLDIR"/>
+            <arg line="-cg ocr.CID"/>
+            <arg line="-var var.myOcr"/>
+            <arg line="-out ${dev.windows.dir}/gen-common-ocr.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-common-res.wxs" />
+        <exec executable="heat">
+            <arg value="dir"/>
+            <arg value="${res.dir}"/>
+            <arg line="${heat.options}"/>
+            <arg line="-dr INSTALLDIR"/>
+            <arg line="-cg res.CID"/>
+            <arg line="-var var.myRes"/>
+            <arg line="-out ${dev.windows.dir}/gen-common-res.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-common-www.wxs" />
+        <exec executable="heat">
+            <arg value="dir"/>
+            <arg value="${www.dir}"/>
+            <arg line="${heat.options}"/>
+            <arg line="-dr INSTALLDIR"/>
+            <arg line="-cg www.CID"/>
+            <arg line="-var var.myWww"/>
+            <arg line="-out ${dev.windows.dir}/gen-common-www.wxs"/>
+        </exec>
+    
+        <!-- Folders for user location -->
+    
+        <echo message="buiding ${dev.windows.dir}/gen-user-examples.wxs" />
+        <exec executable="java">
+            <arg line="-jar ${tools.dir}/wix-heat-user.jar"/>
+            <arg value="${examples.dir}"/>
+            <arg line="-dr adProductDirId"/>
+            <arg line="-cg examples.CID"/>
+            <arg line="-var var.myExamples"/>
+            <arg line="-out ${dev.windows.dir}/gen-user-examples.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-user-eval.wxs" />
+        <exec executable="java">
+            <arg line="-jar ${tools.dir}/wix-heat-user.jar"/>
+            <arg value="${eval.dir}"/>
+            <arg line="-dr adProductDirId"/>
+            <arg line="-cg eval.CID"/>
+            <arg line="-var var.myEval"/>
+            <arg line="-out ${dev.windows.dir}/gen-user-eval.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-user-plugins.wxs" />
+        <exec executable="java">
+            <arg line="-jar ${tools.dir}/wix-heat-user.jar"/>
+            <arg value="${plugins.dir}"/>
+            <arg line="-dr adProductDirId"/>
+            <arg line="-cg plugins.CID"/>
+            <arg line="-var var.myPlugins"/>
+            <arg line="-out ${dev.windows.dir}/gen-user-plugins.wxs"/>
+        </exec>
+    
+        <echo message="buiding ${dev.windows.dir}/gen-user-train.wxs" /> 
+        <exec executable="java">
+            <arg line="-jar ${tools.dir}/wix-heat-user.jar"/>
+            <arg value="${train.dir}"/>
+            <arg line="-dr adProductDirId"/>
+            <arg line="-cg train.CID"/>
+            <arg line="-var var.myTrain"/> 
+            <arg line="-out ${dev.windows.dir}/gen-user-train.wxs"/>
+        </exec> 
+    
+    </target>
+
+  </project>
